@@ -2,9 +2,9 @@ name: Sync via FastAPI Endpoint
 
 on:
   workflow_dispatch:
-  # schedule:
-  #   - cron: "30 2 * * *"   # 8 AM IST
-  #   - cron: "30 14 * * *"  # 8 PM IST
+  schedule:
+    - cron: "30 2 * * *"   # 8 AM IST
+    - cron: "30 14 * * *"  # 8 PM IST
 
 jobs:
   sync:
