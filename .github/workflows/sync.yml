@@ -1,0 +1,51 @@
+name: Sync via FastAPI Endpoint
+
+on:
+  workflow_dispatch:
+  # schedule:
+  #   - cron: "30 2 * * *"   # 8 AM IST
+  #   - cron: "30 14 * * *"  # 8 PM IST
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Set environment variables
+        run: |
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
+          echo "COVEO_API_KEY=${{ secrets.COVEO_API_KEY }}" >> $GITHUB_ENV
+          echo "COVEO_ORG_ID=${{ secrets.COVEO_ORG_ID }}" >> $GITHUB_ENV
+          echo "COVEO_SOURCE_ID=${{ secrets.COVEO_SOURCE_ID }}" >> $GITHUB_ENV
+          echo "COVEO_BATCH_SIZE=${{ secrets.COVEO_BATCH_SIZE }}" >> $GITHUB_ENV
+
+      # 🔥 Start FastAPI in background
+      - name: Start FastAPI server
+        run: |
+          nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+      
+      # ⏳ Wait for server to be ready
+      - name: Wait for server
+        run: |
+          for i in {1..10}; do
+            curl -s http://localhost:8000/healthy && break
+            echo "Waiting for server..."
+            sleep 3
+          done
+
+      # 🚀 Call your endpoint
+      - name: Trigger sync endpoint
+        run: |
+          curl -X POST http://localhost:8000/load/data-pulse \
+          -H "Content-Type: application/json"

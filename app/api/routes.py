@@ -22,6 +22,7 @@ async def get_all_data(db: db_instance):
 
 
 @router.post("/data-pulse")
-async def push_all_data(db:db_instance):
+async def sync_all_data(db:db_instance):
     products=db.query(Product).all()
     await sync_datas(products=products)
+    return {"message": "Data synced successfully"}
