@@ -29,7 +29,8 @@ def map_product_to_document(product:ProductBase):
         "ec_retail_price":product.ec_retail_price,
         "ec_discounted_price":product.ec_discounted_price,
         "ec_images":product.ec_images,
-        "ec_description":product.ec_description
+        "ec_description":product.ec_description,
+        "title":product.ec_product_name
     }
 
 

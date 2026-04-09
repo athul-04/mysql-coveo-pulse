@@ -3,7 +3,7 @@ import time,requests,json
 from ..Settings.SecretSettings import settings
 from ..Models.ProductModel import Product
 from typing import List
-
+from decimal import Decimal
 
 
 AUTH_HEADER = {
@@ -38,7 +38,9 @@ def upload_batch(upload_uri, required_headers, payload):
     res = requests.put(
         upload_uri,
         headers=headers,
-        data=json.dumps(payload).encode("utf-8")
+        data=json.dumps(
+            payload,
+            default=lambda x:float(x) if isinstance(x,Decimal) else x).encode("utf-8")
     )
 
     res.raise_for_status()
@@ -47,7 +49,7 @@ def upload_batch(upload_uri, required_headers, payload):
 
 # 4. Push batch to Coveo
 def push_batch(file_id):
-    url = f"https://api.cloud.coveo.com/push/v1/organizations/{settings.coveo_api_key}/sources/{settings.coveo_source_id}/documents/batch?fileId={file_id}"
+    url = f"https://api.cloud.coveo.com/push/v1/organizations/{settings.coveo_org_id}/sources/{settings.coveo_source_id}/documents/batch?fileId={file_id}"
 
     res = requests.put(url, headers=AUTH_HEADER)
     res.raise_for_status()
@@ -65,11 +67,11 @@ def push_products(products:List[Product]):
             "addOrUpdate": documents,
             "delete": []
         }
-        # upload_uri, file_id, required_headers = create_file_container()
-        # upload_batch(upload_uri, required_headers, payload)
-        # push_batch(file_id)
+        upload_uri, file_id, required_headers = create_file_container()
+        upload_batch(upload_uri, required_headers, payload)
+        push_batch(file_id)
         print(f"Pushed batch {i //  settings.coveo_batch_size + 1}")
-        time.sleep(3)
+        # time.sleep(3)
 
 
 
