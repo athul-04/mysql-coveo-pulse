@@ -1,9 +1,7 @@
 from fastapi import FastAPI,status
-from api import routes
+from .api import routes
 
 app=FastAPI()
-
-
 
 @app.get("/healthy",status_code=status.HTTP_200_OK)
 async def get_server_status():
